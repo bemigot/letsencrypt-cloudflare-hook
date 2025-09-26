@@ -1,3 +1,5 @@
+**WARNING** this fix hard-codes domain name in lines [62 and 64](https://github.com/bemigot/letsencrypt-cloudflare-hook/blob/f6a6f9e3e6fab82c300793f89048b99857d8fa88/hook.py#L62). Hopefully that shortcut will be fixed soon.
+
 # CloudFlare hook for `dehydrated`
 
 This is a hook for the [Let's Encrypt](https://letsencrypt.org/) ACME client [dehydrated](https://github.com/lukas2511/dehydrated) (previously known as `letsencrypt.sh`) that allows you to use [CloudFlare](https://www.cloudflare.com/) DNS records to respond to `dns-01` challenges. Requires Python and your CloudFlare account e-mail and API key being in the environment.
