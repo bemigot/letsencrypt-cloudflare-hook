@@ -41,22 +41,26 @@ def _has_dns_propagated(name, token):
             dns_response = custom_resolver.resolve(name, 'TXT')
         else:
             dns_response = dns.resolver.resolve(name, 'TXT')
-            
+
         for rdata in dns_response:
             if token in [b.decode('utf-8') for b in rdata.strings]:
                 return True
-                
+
     except dns.exception.DNSException as e:
         logger.debug(" + {0}. Retrying query...".format(e))
-        
+
     return False
 
+def tld(domain):
+    """Take likely domain"""
+    if domain.count('.') > 1:
+        return domain[domain.find('.') + 1:]
+    else:
+        return domain
 
 # https://developers.cloudflare.com/api/resources/zones/methods/list/
-def _get_zone_id(domain_name):
-    parts = domain_name.split('.')
-    domain = '.'.join(parts[1:])
-    url = f"https://api.cloudflare.com/client/v4/zones?name={domain}"
+def _get_zone_id(domain):
+    url = f"https://api.cloudflare.com/client/v4/zones?name={tld(domain)}"
     r = requests.get(url, headers=CF_HEADERS)
     r.raise_for_status()
     return r.json()['result'][0]['id']
@@ -84,12 +88,12 @@ def create_txt_record(args):
     # FIXME we should ask id once for same domain
     zone_id = _get_zone_id(domain)
     name = "{0}.{1}".format('_acme-challenge', domain)
-    
+
     record_id = _get_txt_record_id(zone_id, name, token)
     if record_id:
         logger.debug(" + TXT record exists, skipping creation.")
         return
-    
+
     url = "https://api.cloudflare.com/client/v4/zones/{0}/dns_records".format(zone_id)
     payload = {
         'type': 'TXT',
@@ -132,7 +136,7 @@ def deploy_cert(args):
 
 def unchanged_cert(args):
     return
-    
+
 
 def invalid_challenge(args):
     domain, result = args
