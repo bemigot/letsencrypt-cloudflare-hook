@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+#!/usr/bin/env python3
 
 import dns.exception
 import dns.resolver
@@ -58,10 +53,9 @@ def _has_dns_propagated(name, token):
 
 
 # https://developers.cloudflare.com/api/resources/zones/methods/list/
-def _get_zone_id(domain):
-    if domain != "bemigot.org":
-        logger.error("BUG: domain != 'bemigot.org'")
-        domain = "bemigot.org"
+def _get_zone_id(domain_name):
+    parts = domain_name.split('.')
+    domain = '.'.join(parts[1:])
     url = f"https://api.cloudflare.com/client/v4/zones?name={domain}"
     r = requests.get(url, headers=CF_HEADERS)
     r.raise_for_status()
@@ -87,6 +81,7 @@ def create_txt_record(args):
     domain, challenge, token = args
     logger.debug(' + Creating TXT record: {0} => {1}'.format(domain, token))
     logger.debug(' + Challenge: {0}'.format(challenge))
+    # FIXME we should ask id once for same domain
     zone_id = _get_zone_id(domain)
     name = "{0}.{1}".format('_acme-challenge', domain)
     
@@ -157,6 +152,7 @@ def create_all_txt_records(args):
         domain, token = args[i], args[i+2]
         name = "{0}.{1}".format('_acme-challenge', domain)
         while not _has_dns_propagated(name, token):
+            # FIXME we should retry setting the record at least once. Or suggest so.
             logger.info(" + DNS not propagated, waiting 30s...")
             time.sleep(30)
 
