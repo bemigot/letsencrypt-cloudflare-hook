@@ -1,4 +1,4 @@
-**WARNING** this fix hard-codes domain name in lines [62 and 64](https://github.com/bemigot/letsencrypt-cloudflare-hook/blob/f6a6f9e3e6fab82c300793f89048b99857d8fa88/hook.py#L62). Hopefully that shortcut will be fixed soon.
+**WARNING** hard-codes domain name in lines [62 and 64](https://github.com/bemigot/letsencrypt-cloudflare-hook/blob/f6a6f9e3e6fab82c300793f89048b99857d8fa88/hook.py#L62). Hopefully 6f7565b fixed that.
 
 # CloudFlare hook for `dehydrated`
 
