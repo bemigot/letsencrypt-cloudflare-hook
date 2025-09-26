@@ -5,11 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from builtins import str
-
-from future import standard_library
-standard_library.install_aliases()
-
 import dns.exception
 import dns.resolver
 import logging
@@ -17,18 +12,6 @@ import os
 import requests
 import sys
 import time
-
-from tld import get_tld
-
-# Enable verified HTTPS requests on older Pythons
-# http://urllib3.readthedocs.org/en/latest/security.html
-if sys.version_info[0] == 2:
-    try:
-        requests.packages.urllib3.contrib.pyopenssl.inject_into_urllib3()
-    except AttributeError:
-        # see https://github.com/certbot/certbot/issues/1883
-        import urllib3.contrib.pyopenssl
-        urllib3.contrib.pyopenssl.inject_into_urllib3()
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -41,7 +24,7 @@ else:
 try:
     CF_HEADERS = {
         'X-Auth-Email': os.environ['CF_EMAIL'],
-        'X-Auth-Key'  : os.environ['CF_KEY'],
+        'Authorization'  : 'Bearer ' + os.environ['CF_TOKEN'],
         'Content-Type': 'application/json',
     }
 except KeyError:
@@ -60,9 +43,9 @@ def _has_dns_propagated(name, token):
         if dns_servers:
             custom_resolver = dns.resolver.Resolver()
             custom_resolver.nameservers = dns_servers
-            dns_response = custom_resolver.query(name, 'TXT')
+            dns_response = custom_resolver.resolve(name, 'TXT')
         else:
-            dns_response = dns.resolver.query(name, 'TXT')
+            dns_response = dns.resolver.resolve(name, 'TXT')
             
         for rdata in dns_response:
             if token in [b.decode('utf-8') for b in rdata.strings]:
@@ -74,10 +57,12 @@ def _has_dns_propagated(name, token):
     return False
 
 
-# https://api.cloudflare.com/#zone-list-zones
+# https://developers.cloudflare.com/api/resources/zones/methods/list/
 def _get_zone_id(domain):
-    tld = get_tld('http://' + domain)
-    url = "https://api.cloudflare.com/client/v4/zones?name={0}".format(tld)
+    if domain != "bemigot.org":
+        logger.error("BUG: domain != 'bemigot.org'")
+        domain = "bemigot.org"
+    url = f"https://api.cloudflare.com/client/v4/zones?name={domain}"
     r = requests.get(url, headers=CF_HEADERS)
     r.raise_for_status()
     return r.json()['result'][0]['id']
@@ -171,15 +156,15 @@ def create_all_txt_records(args):
     for i in range(0, len(args), X):
         domain, token = args[i], args[i+2]
         name = "{0}.{1}".format('_acme-challenge', domain)
-        while(_has_dns_propagated(name, token) == False):
+        while not _has_dns_propagated(name, token):
             logger.info(" + DNS not propagated, waiting 30s...")
             time.sleep(30)
 
 
 def delete_all_txt_records(args):
-    X = 3
-    for i in range(0, len(args), X):
-        delete_txt_record(args[i:i+X])
+    x = 3
+    for i in range(0, len(args), x):
+        delete_txt_record(args[i:i + x])
 
 def startup_hook(args):
     return

@@ -1,0 +1,12 @@
+export CF_API_TOKEN=GxY7-2xyZ-Yy4c_r8abcdefghijklmnopqrstuvwxyz
+
+curl "https://api.cloudflare.com/client/v4/accounts/9ae84e42062eca0cf6762dbd3bd8b4cc/tokens/verify" \
+ -H "Authorization: Bearer $CF_TOKEN"
+
+curl "https://api.cloudflare.com/client/v4/zones" \
+     -H "X-Auth-Email: $CLOUDFLARE_EMAIL" \
+     -H "Authorization: Bearer $CF_API_TOKEN"
+
+curl "https://api.cloudflare.com/client/v4/zones?name=bemigot.org" \
+     -H "X-Auth-Email: $CLOUDFLARE_EMAIL" \
+     -H "Authorization: Bearer $CF_API_TOKEN"
