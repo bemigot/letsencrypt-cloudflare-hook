@@ -51,7 +51,7 @@ def _has_dns_propagated(name, token):
 
     return False
 
-def tld(domain):
+def tld(domain):  # thanks https://github.com/rossnick/letsencrypt-DNSMadeEasy-hook
     """Take likely domain"""
     if domain.count('.') > 1:
         return domain[domain.find('.') + 1:]
