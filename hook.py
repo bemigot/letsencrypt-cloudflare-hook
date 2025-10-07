@@ -19,11 +19,11 @@ else:
 try:
     CF_HEADERS = {
         'X-Auth-Email': os.environ['CF_EMAIL'],
-        'Authorization'  : 'Bearer ' + os.environ['CF_TOKEN'],
+        'Authorization'  : f"Bearer {os.environ['CF_TOKEN']}",
         'Content-Type': 'application/json',
     }
 except KeyError:
-    logger.error(" + Unable to locate Cloudflare credentials in environment!")
+    logger.error("CF_EMAIL and/or CF_TOKEN undefined")
     sys.exit(1)
 
 try:
