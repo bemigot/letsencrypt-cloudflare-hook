@@ -26,18 +26,14 @@ except KeyError:
     logger.error("CF_EMAIL and/or CF_TOKEN undefined")
     sys.exit(1)
 
-try:
-    dns_servers = os.environ['CF_DNS_SERVERS']
-    dns_servers = dns_servers.split()
-except KeyError:
-    dns_servers = False
+dns_servers = []
 
 
 def _has_dns_propagated(name, token):
+    global dns_servers
     try:
         if dns_servers:
-            custom_resolver = dns.resolver.Resolver()
-            custom_resolver.nameservers = dns_servers
+            custom_resolver = dns.resolver.make_resolver_at(dns_servers[0])
             dns_response = custom_resolver.resolve(name, 'TXT')
         else:
             dns_response = dns.resolver.resolve(name, 'TXT')
@@ -60,10 +56,19 @@ def tld(domain):  # thanks https://github.com/rossnick/letsencrypt-DNSMadeEasy-h
 
 # https://developers.cloudflare.com/api/resources/zones/methods/list/
 def _get_zone_id(domain):
+    global dns_servers
     url = f"https://api.cloudflare.com/client/v4/zones?name={tld(domain)}"
     r = requests.get(url, headers=CF_HEADERS)
     r.raise_for_status()
-    return r.json()['result'][0]['id']
+    jsonr = r.json()
+    rr = jsonr.get('result',[])
+    if not rr:
+        logger.error(f" + API response is empty. Check your Account/User token Zone Resources")
+        sys.exit(1)
+
+    zone = rr[0]
+    dns_servers = zone['name_servers']
+    return zone['id']
 
 
 # https://api.cloudflare.com/#dns-records-for-a-zone-dns-record-details
@@ -184,7 +189,7 @@ def main(argv):
         'exit_hook': exit_hook
     }
     if argv[0] in ops:
-        logger.info(" + CloudFlare hook executing: {0}".format(argv[0]))
+        logger.info(f" + CloudFlare hook executing: {argv[0]}")
         ops[argv[0]](argv[1:])
 
 if __name__ == '__main__':
