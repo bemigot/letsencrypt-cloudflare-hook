@@ -1,50 +1,41 @@
-**WARNING** hard-codes domain name in lines [62 and 64](https://github.com/bemigot/letsencrypt-cloudflare-hook/blob/f6a6f9e3e6fab82c300793f89048b99857d8fa88/hook.py#L62). Hopefully 3f2d874 fixed that.
-
 # CloudFlare hook for `dehydrated`
 
-This is a hook for the [Let's Encrypt](https://letsencrypt.org/) ACME client [dehydrated](https://github.com/lukas2511/dehydrated) (previously known as `letsencrypt.sh`) that allows you to use [CloudFlare](https://www.cloudflare.com/) DNS records to respond to `dns-01` challenges. Requires Python and your CloudFlare account e-mail and API key being in the environment.
+This is a hook for the [Let's Encrypt](https://letsencrypt.org/) ACME client [dehydrated](https://github.com/lukas2511/dehydrated)
+(once known as `letsencrypt.sh`) that allows you to use [Cloudflare](https://www.cloudflare.com/)
+DNS records to respond to `dns-01` challenges.
+Requires Python 3.6+ and your Cloudflare account e-mail and API token in the environment.
 
 ## Installation
 
-```
+```bash
 $ cd ~
-$ git clone https://github.com/lukas2511/dehydrated
+$ git clone https://github.com/dehydrated-io/dehydrated.git
 $ cd dehydrated
 $ mkdir hooks
-$ git clone https://github.com/kappataumu/letsencrypt-cloudflare-hook hooks/cloudflare
+$ git clone https://github.com/bemigot/letsencrypt-cloudflare-hook.git hooks/cloudflare
 
 $ pip install -r hooks/cloudflare/requirements.txt
 ```
 
 ## Configuration
 
-Your account's CloudFlare email and API key are expected to be in the environment, so make sure to:
-
-```
-$ export CF_EMAIL='user@example.com'
-$ export CF_TOKEN='K9uX2HyUjeWg5AhAb'
-```
-
-Optionally, you can specify the DNS servers to be used for propagation checking via the `CF_DNS_SERVERS` environment variable (props [bennettp123](https://github.com/bennettp123)):
-
-```
-$ export CF_DNS_SERVERS='8.8.8.8 8.8.4.4'
-```
+Your account's CloudFlare email and API key are expected to be in the environment, see below.
 
 If you want more information about what is going on while the hook is running:
-
 ```
 $ export CF_DEBUG='true'
 ```
 
-Alternatively, these statements can be placed in `dehydrated/config`, which is automatically sourced by `dehydrated` on startup:
+These statements can be placed in `dehydrated/config`, which is automatically sourced by `dehydrated` on startup:
 
-```
-echo "CHALLENGETYPE='dns-01'"
-echo "HOOK=hooks/cloudflare/hook.py"
-echo "export CF_EMAIL=user@example.com" >> config
-echo "export CF_TOKEN=K9-uX2HyUjeWg5AhAb" >> config
-echo "export CF_DEBUG=true" >> config
+```bash
+D_CONFIG=../dehydrated/config
+cat >> $D_CONFIG << EoConfig
+CHALLENGETYPE='dns-01'
+HOOK=hooks/cloudflare/hook.py
+export CF_EMAIL=me@example.com
+export CF_TOKEN=K9-uX2HyUjeWg5AhAb
+EoConfig
 ```
 
 
@@ -75,5 +66,5 @@ Processing example.com
  + Done!
 ```
 
-## Further reading
-If you want some prose to go with the code, check out the relevant blog post here: [February 04, 2016: From StartSSL to Let's Encrypt, using CloudFlare DNS](http://kappataumu.com/articles/letsencrypt-cloudflare-dns-01-hook.html).
+## Author's note
+[February 04, 2016: From StartSSL to Let's Encrypt, using CloudFlare DNS](http://kappataumu.com/articles/letsencrypt-cloudflare-dns-01-hook.html).
